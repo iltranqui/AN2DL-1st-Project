@@ -22,32 +22,22 @@ cwd = os.getcwd()
 for gpu in tf.config.experimental.list_physical_devices('GPU'):
     tf.config.experimental.set_memory_growth(gpu, True)
 
-
-# In[74]:
-
-
 cwd = os.getcwd()
-cwd
-
-
-# In[75]:
-
-
+# Join the datasets
 dataset_dir = os.path.join(cwd, 'VQA_Dataset')
 
 # if os.path.exists(dataset_dir):
    # shutil.rmtree(dataset_dir)
+# Hyperparameters
 
-
-# # Hyperparameters
-
-# In[76]:
-
-
-img_w = 256
-img_h = 256
-batch_size = 16
+img_w = 256   # image width 
+img_h = 256   # image height
+# bigger allows for a more complex model
+batch_size = 16   
+# The bigger the batch, the faster the training, but more memory necessary
 lr = 1e-4
+# Learning rate: controls how much to change the model in response to the estimated error each time the model weights are updated
+# Small --> long training: Too large --> sub-optimal learning weights to fast or instability.
 
 MAX_NUM_WORDS = 5000 # max number of unique words in dictionary
 
@@ -55,10 +45,7 @@ FEATURES = 512 # size of feature vector for images and questions
 
 UNITS = 32  
 
-
-# In[77]:
-
-
+# Total possible number of answers
 labels_dict = {
         '0': 0,
         '1': 1,
@@ -120,12 +107,10 @@ labels_dict = {
         'yes': 57
 }
 
+
 num_answers = len(labels_dict)
 
-
-# # Functions
-
-# In[78]:
+# Functions
 
 
 import json
@@ -137,15 +122,15 @@ def unwrap_weighted(path, split = 0.2):
         
     dic_images = None
     
-    with open(dataset_dir) as f:
-       dic_images = json.load(f)
+    with open(dataset_dir) as f:   # open the file as f
+       dic_images = json.load(f)    # assign to the json format  ( https://www.geeksforgeeks.org/json-load-in-python/#:~:text=load()-,json.,values%20are%20the%20JSON%20types. ) to dic_images
         
-    dict_keys = list(dic_images.keys())
-    np.random.shuffle(dict_keys)
-    questions = int(round(split*len(dict_keys)))
+    dict_keys = list(dic_images.keys())    # keys in json are only the first elements ( in this case the idmage, a number )
+    np.random.shuffle(dict_keys)      # shuffle the data for training reasons, so each iteration of training is different
+    questions = int(round(split*len(dict_keys)))    #  ??? what does this do ? 
         
-    dic_validations = { dict_keys[i]:dic_images[dict_keys[i]] for i in range(questions)}
-    dic_training = {dict_keys[i]:dic_images[dict_keys[i]] for i in range(questions, len(dict_keys))}
+    dic_validations = { dict_keys[i]:dic_images[dict_keys[i]] for i in range(questions)}                    # ask deli
+    dic_training = {dict_keys[i]:dic_images[dict_keys[i]] for i in range(questions, len(dict_keys))}        # ask deli
         
     with open(training_dir, 'w') as fp:
        json.dump(dic_training, fp)
@@ -153,9 +138,6 @@ def unwrap_weighted(path, split = 0.2):
        json.dump(dic_validations, fp)
 
 path = os.getcwd()
-
-
-# In[79]:
 
 
 def get_token_dic_quest(path, max_num_words = 5000):
