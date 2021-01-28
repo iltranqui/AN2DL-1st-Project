@@ -127,15 +127,15 @@ def unwrap_weighted(path, split = 0.2):
         
     dict_keys = list(dic_images.keys())    # keys in json are only the first elements ( in this case the idmage, a number )
     np.random.shuffle(dict_keys)      # shuffle the data for training reasons, so each iteration of training is different
-    questions = int(round(split*len(dict_keys)))    #  ??? what does this do ? 
-        
+    questions = int(round(split*len(dict_keys)))    # number of questions in training.json who are part of the 0.2 split
+    
     dic_validations = { dict_keys[i]:dic_images[dict_keys[i]] for i in range(questions)}                    # ask deli
     dic_training = {dict_keys[i]:dic_images[dict_keys[i]] for i in range(questions, len(dict_keys))}        # ask deli
         
     with open(training_dir, 'w') as fp:
-       json.dump(dic_training, fp)
+       json.dump(dic_training, fp)    # writing all the questions into a new Json
     with open(validation_dir, 'w') as fp:
-       json.dump(dic_validations, fp)
+       json.dump(dic_validations, fp)  # writing all the questions into a new Json
 
 path = os.getcwd()
 
@@ -152,18 +152,18 @@ def get_token_dic_quest(path, max_num_words = 5000):
     questions = [dic['question'] for dic in dic_images.values()]
 
     # Strip '?' from questions
-    questions = [s.translate(str.maketrans('', '', '?')).lower() for s in questions if not s == '']
+    questions = [s.translate(str.maketrans('', '', '?')).lower() for s in questions if not s == '']   # ask deli
     questions_tokenizer = Tokenizer(num_words=max_num_words)
     questions_tokenizer.fit_on_texts(questions)
 
     questions_wtoi = questions_tokenizer.word_index # index 0 reserved for padding
     
-    questions_tokenized = questions_tokenizer.texts_to_sequences(questions)
-    max_question_length = max(len(sentence) for sentence in questions_tokenized)
+    questions_tokenized = questions_tokenizer.texts_to_sequences(questions)   # neural network stuff for text reading
+    max_question_length = max(len(sentence) for sentence in questions_tokenized)   # scan through all the words which is the biggest question
     
     return questions_tokenizer, questions_wtoi, max_question_length
 
-
+# Function to translate from a list to a json
 def from_questions_to_dict(path, dict_req, max_num_words = 5000):
     from tensorflow.keras.preprocessing.sequence import pad_sequences
     
@@ -182,9 +182,6 @@ def from_questions_to_dict(path, dict_req, max_num_words = 5000):
         translated_dics.append(dic)
     
     return translated_dics
-
-
-# In[80]:
 
 
 from PIL import Image
@@ -263,14 +260,9 @@ class dataset_generator(tf.keras.utils.Sequence):
 
 # Datasets generation
 
-# In[81]:
-
-
 unwrap_weighted(os.path.join(path, 'VQA_Dataset'))
 
-
-# In[82]:
-
+# VGG16 dataset
 
 preprocessing_function = tf.keras.applications.vgg16.preprocess_input
 
@@ -326,13 +318,9 @@ image_encoder.summary()
 
 # Load questions into a List
 
-# In[84]:
-
-
 import json
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-
 dataset_dir = os.path.join(cwd, "VQA_Dataset", "train_questions_annotations.json")
 
 # Load dataset
